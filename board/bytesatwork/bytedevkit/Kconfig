@@ -1,0 +1,12 @@
+if TARGET_BYTEDEVKIT
+
+config SYS_BOARD
+	default "bytedevkit"
+
+config SYS_VENDOR
+	default "bytesatwork"
+
+config SYS_CONFIG_NAME
+	default "bytedevkit"
+
+endif
