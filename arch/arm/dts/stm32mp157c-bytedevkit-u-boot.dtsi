@@ -11,6 +11,7 @@
 	aliases {
 		i2c3 = &i2c4;
 		mmc0 = &sdmmc1;
+		spi0 = &qspi;
 	};
 };
 
@@ -142,6 +143,33 @@
 
 &uart4 {
 	u-boot,dm-pre-reloc;
+};
+
+
+&flash0 {
+	compatible = "spi-flash";
+	u-boot,dm-spl;
+};
+
+&qspi {
+	u-boot,dm-spl;
+};
+
+&qspi_clk_pins_a {
+	u-boot,dm-spl;
+	pins {
+		u-boot,dm-spl;
+	};
+};
+
+&qspi_bk1_pins_a {
+	u-boot,dm-spl;
+	pins1 {
+		u-boot,dm-spl;
+	};
+	pins2 {
+		u-boot,dm-spl;
+	};
 };
 
 &uart4_pins_a {
