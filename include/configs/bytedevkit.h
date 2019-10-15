@@ -90,6 +90,8 @@
 #define CONFIG_SYS_SPI_U_BOOT_OFFS	0x80000
 #endif
 
+#define CONFIG_SYS_MAX_FLASH_BANKS	1
+
 /* FILE SYSTEM */
 
 #if defined(CONFIG_STM32_QSPI) || defined(CONFIG_NAND_STM32_FMC2)
@@ -124,6 +126,11 @@
 	"stdout=serial\0" \
 	"stderr=serial\0" \
 	"bootdelay=1\0" \
+	"spl_file=u-boot-spl.stm32\0" \
+	"uboot_file=u-boot.img\0" \
+	"uboot_offset=0x80000\0" \
+	"loadaddr=0xc1000000\0" \
+	"spl_uboot_size=0x280000\0" \
 	"kernel_addr_r=0xc2000000\0" \
 	"fdt_addr_r=0xc4000000\0" \
 	"scriptaddr=0xc4100000\0" \
@@ -137,6 +144,14 @@
 	"default_args=rootwait rw vt.global_cursor_default=0 consoleblank=0\0" \
 	"mmc_args=setenv bootargs ${default_args} console=${console} " \
 		"root=${mmc_root} ${bootargs_append}; \0" \
+	"update_spiflash=echo Updating SPI Flash ...; " \
+		"sf probe 0; " \
+		"sf erase 0 +${spl_uboot_size}; " \
+		"mmc rescan; " \
+		"ext4load mmc 0:4 ${loadaddr} ${spl_file} || exit; "\
+		"sf write ${loadaddr} 0 ${filesize}; " \
+		"ext4load mmc 0:4 ${loadaddr} ${uboot_file} || exit; " \
+		"sf write ${loadaddr} ${uboot_offset} ${filesize};\0" \
 	MMC_BOOT_CMD
 
 #endif /* ifndef CONFIG_SPL_BUILD */
