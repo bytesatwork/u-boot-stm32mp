@@ -5,28 +5,34 @@
  * based on stm32mp1/stm32mp1.c:
  * Copyright (C) 2018, STMicroelectronics - All Rights Reserved
  */
-
 #include <config.h>
 #include <common.h>
 #include <adc.h>
+#include <bootm.h>
 #include <dm.h>
 #include <clk.h>
 #include <console.h>
+#include <environment.h>
 #include <fdt_support.h>
 #include <generic-phy.h>
+#include <g_dnl.h>
 #include <i2c.h>
 #include <led.h>
 #include <misc.h>
+#include <mtd.h>
 #include <mtd_node.h>
+#include <netdev.h>
 #include <phy.h>
 #include <remoteproc.h>
 #include <reset.h>
 #include <syscon.h>
 #include <usb.h>
+#include <watchdog.h>
 #include <asm/io.h>
 #include <asm/gpio.h>
 #include <asm/arch/stm32.h>
 #include <asm/arch/stm32mp1_smc.h>
+#include <asm/arch/sys_proto.h>
 #include <jffs2/load_kernel.h>
 #include <power/regulator.h>
 #include <usb/dwc2_udc.h>
@@ -39,6 +45,9 @@
 #define SYSCFG_CMPCR		0x20
 #define SYSCFG_CMPENSETR	0x24
 #define SYSCFG_PMCCLRR		0x44
+
+#define SYSCFG_BOOTR_BOOT_MASK		GENMASK(2, 0)
+#define SYSCFG_BOOTR_BOOTPD_SHIFT	4
 
 #define SYSCFG_IOCTRLSETR_HSLVEN_TRACE		BIT(0)
 #define SYSCFG_IOCTRLSETR_HSLVEN_QUADSPI	BIT(1)
@@ -76,7 +85,9 @@ int checkboard(void)
 	const char *fdt_compat;
 	int fdt_compat_len;
 
-	if (IS_ENABLED(CONFIG_STM32MP1_TRUSTED))
+	if (IS_ENABLED(CONFIG_STM32MP1_OPTEE))
+		mode = "op-tee";
+	else if (IS_ENABLED(CONFIG_STM32MP1_TRUSTED))
 		mode = "trusted";
 	else
 		mode = "basic";
@@ -105,41 +116,40 @@ int checkboard(void)
 
 	return 0;
 }
-int board_late_init(void)
-{
-#ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
-	const void *fdt_compat;
-	int fdt_compat_len;
 
-	fdt_compat = fdt_getprop(gd->fdt_blob, 0, "compatible",
-				 &fdt_compat_len);
-	if (fdt_compat && fdt_compat_len) {
-		if (strncmp(fdt_compat, "st,", 3) != 0)
-			env_set("board_name", fdt_compat);
-		else
-			env_set("board_name", fdt_compat + 3);
+static void __maybe_unused led_error_blink(u32 nb_blink)
+{
+#ifdef CONFIG_LED
+	int ret;
+	struct udevice *led;
+	u32 i;
+#endif
+
+	if (!nb_blink)
+		return;
+
+#ifdef CONFIG_LED
+	ret = get_led(&led, "u-boot,error-led");
+	if (!ret) {
+		/* make u-boot,error-led blinking */
+		/* if U32_MAX and 125ms interval, for 17.02 years */
+		for (i = 0; i < 2 * nb_blink; i++) {
+			led_set_state(led, LEDST_TOGGLE);
+			mdelay(125);
+			WATCHDOG_RESET();
+		}
+		led_set_state(led, LEDST_ON);
 	}
 #endif
 
-	return 0;
+	/* infinite: the boot process must be stopped */
+	if (nb_blink == U32_MAX)
+		hang();
 }
-
-#ifdef CONFIG_STM32_SDMMC2
-/* this is a weak define that we are overriding */
-int board_mmc_init(void)
-{
-	return 0;
-}
-#endif
-
-#ifdef CONFIG_STM32_QSPI
-void board_qspi_init(void)
-{
-}
-#endif /* CONFIG_STM32_QSPI */
 
 static void sysconf_init(void)
 {
+#ifndef CONFIG_STM32MP1_TRUSTED
 	u8 *syscfg;
 #ifdef CONFIG_DM_REGULATOR
 	struct udevice *pwr_dev;
@@ -163,7 +173,8 @@ static void sysconf_init(void)
 
 	/* disable Pull-Down for boot pin connected to VDD */
 	bootr = readl(syscfg + SYSCFG_BOOTR);
-	bootr |= (bootr & 0x7 << 4);
+	bootr &= ~(SYSCFG_BOOTR_BOOT_MASK << SYSCFG_BOOTR_BOOTPD_SHIFT);
+	bootr |= (bootr & SYSCFG_BOOTR_BOOT_MASK) << SYSCFG_BOOTR_BOOTPD_SHIFT;
 	writel(bootr, syscfg + SYSCFG_BOOTR);
 	debug("[0x%x] SYSCFG.bootr = 0x%08x\n",
 	      (u32)syscfg + SYSCFG_BOOTR, readl(syscfg + SYSCFG_BOOTR));
@@ -184,7 +195,6 @@ static void sysconf_init(void)
 	 */
 	ret = syscon_get_by_driver_data(STM32MP_SYSCON_PWR, &pwr_dev);
 	if (!ret) {
-
 		ret = uclass_get_device_by_driver(UCLASS_MISC,
 						  DM_GET_DRIVER(stm32mp_bsec),
 						  &dev);
@@ -197,9 +207,12 @@ static void sysconf_init(void)
 		if (!ret)
 			otp = otp & BIT(13);
 
-		/* get VDD = pwr-supply */
-		ret = device_get_supply_regulator(pwr_dev, "pwr-supply",
-						  &pwr_reg);
+		ret = uclass_get_device_by_driver(UCLASS_PMIC,
+						  DM_GET_DRIVER(stm32mp_pwr_pmic),
+						  &dev);
+
+		/* get VDD = vdd-supply */
+		ret = device_get_supply_regulator(dev, "vdd-supply", &pwr_reg);
 
 		/* check if VDD is Low Voltage */
 		if (!ret) {
@@ -237,7 +250,58 @@ static void sysconf_init(void)
 
 	debug("[0x%x] SYSCFG.cmpcr = 0x%08x\n",
 	      (u32)syscfg + SYSCFG_CMPCR, readl(syscfg + SYSCFG_CMPCR));
+#endif
 }
+
+
+enum env_location env_get_location(enum env_operation op, int prio)
+{
+	u32 bootmode = get_bootmode();
+
+	if (prio)
+		return ENVL_UNKNOWN;
+
+	switch (bootmode & TAMP_BOOT_DEVICE_MASK) {
+#ifdef CONFIG_ENV_IS_IN_EXT4
+	case BOOT_FLASH_SD:
+	case BOOT_FLASH_EMMC:
+		return ENVL_EXT4;
+#endif
+#ifdef CONFIG_ENV_IS_IN_UBI
+	case BOOT_FLASH_NAND:
+		return ENVL_UBI;
+#endif
+#ifdef CONFIG_ENV_IS_IN_SPI_FLASH
+	case BOOT_FLASH_NOR:
+		return ENVL_SPI_FLASH;
+#endif
+	default:
+		return ENVL_NOWHERE;
+	}
+}
+
+#if defined(CONFIG_ENV_IS_IN_EXT4)
+const char *env_ext4_get_intf(void)
+{
+	u32 bootmode = get_bootmode();
+
+	switch (bootmode & TAMP_BOOT_DEVICE_MASK) {
+	case BOOT_FLASH_SD:
+	case BOOT_FLASH_EMMC:
+		return "mmc";
+	default:
+		return "";
+	}
+}
+
+const char *env_ext4_get_dev_part(void)
+{
+	static char *const dev_part[] = {"0:auto", "1:auto", "2:auto"};
+	u32 bootmode = get_bootmode();
+
+	return dev_part[(bootmode & TAMP_BOOT_INSTANCE_MASK) - 1];
+}
+#endif
 
 /* board dependent setup after realloc */
 int board_init(void)
@@ -256,44 +320,150 @@ int board_init(void)
 
 	sysconf_init();
 
-#ifdef CONFIG_STM32_SDMMC2
-	board_mmc_init();
-#endif /* CONFIG_STM32_SDMMC2 */
+	return 0;
+}
 
-#ifdef CONFIG_STM32_QSPI
-	board_qspi_init();
-#endif /* CONFIG_STM32_QSPI */
+int board_late_init(void)
+{
+
+	char *boot_device;
+#ifdef CONFIG_ENV_VARS_UBOOT_RUNTIME_CONFIG
+	const void *fdt_compat;
+	int fdt_compat_len;
+	int ret;
+	u32 otp;
+	struct udevice *dev;
+	char buf[10];
+
+	fdt_compat = fdt_getprop(gd->fdt_blob, 0, "compatible",
+				 &fdt_compat_len);
+	if (fdt_compat && fdt_compat_len) {
+		if (strncmp(fdt_compat, "st,", 3) != 0)
+			env_set("board_name", fdt_compat);
+		else
+			env_set("board_name", fdt_compat + 3);
+	}
+	ret = uclass_get_device_by_driver(UCLASS_MISC,
+					  DM_GET_DRIVER(stm32mp_bsec),
+					  &dev);
+
+	if (!ret)
+		ret = misc_read(dev, STM32_BSEC_SHADOW(BSEC_OTP_BOARD),
+				&otp, sizeof(otp));
+	if (!ret && otp) {
+		snprintf(buf, sizeof(buf), "0x%04x", otp >> 16);
+		env_set("board_id", buf);
+
+		snprintf(buf, sizeof(buf), "0x%04x",
+			 ((otp >> 8) & 0xF) - 1 + 0xA);
+		env_set("board_rev", buf);
+	}
+#endif
+
+	/* Check the boot-source to disable bootdelay */
+	boot_device = env_get("boot_device");
+	if (!strcmp(boot_device, "serial") || !strcmp(boot_device, "usb"))
+		env_set("bootdelay", "0");
 
 	return 0;
 }
 
 #ifdef CONFIG_SYS_MTDPARTS_RUNTIME
+
+#define MTDPARTS_LEN		256
+#define MTDIDS_LEN		128
+
+/**
+ * The mtdparts_nand0 and mtdparts_nor0 variable tends to be long.
+ * If we need to access it before the env is relocated, then we need
+ * to use our own stack buffer. gd->env_buf will be too small.
+ *
+ * @param buf temporary buffer pointer MTDPARTS_LEN long
+ * @return mtdparts variable string, NULL if not found
+ */
+static const char *env_get_mtdparts(const char *str, char *buf)
+{
+	if (gd->flags & GD_FLG_ENV_READY)
+		return env_get(str);
+	if (env_get_f(str, buf, MTDPARTS_LEN) != -1)
+		return buf;
+	return NULL;
+}
+
+/**
+ * update the variables "mtdids" and "mtdparts" with content of mtdparts_<dev>
+ */
+static void board_get_mtdparts(const char *dev,
+			       char *mtdids,
+			       char *mtdparts)
+{
+	char env_name[32] = "mtdparts_";
+	char tmp_mtdparts[MTDPARTS_LEN];
+	const char *tmp;
+
+	/* name of env variable to read = mtdparts_<dev> */
+	strcat(env_name, dev);
+	tmp = env_get_mtdparts(env_name, tmp_mtdparts);
+	if (tmp) {
+		/* mtdids: "<dev>=<dev>, ...." */
+		if (mtdids[0] != '\0')
+			strcat(mtdids, ",");
+		strcat(mtdids, dev);
+		strcat(mtdids, "=");
+		strcat(mtdids, dev);
+
+		/* mtdparts: "mtdparts=<dev>:<mtdparts_<dev>>;..." */
+		if (mtdparts[0] != '\0')
+			strncat(mtdparts, ";", MTDPARTS_LEN);
+		else
+			strcat(mtdparts, "mtdparts=");
+		strncat(mtdparts, dev, MTDPARTS_LEN);
+		strncat(mtdparts, ":", MTDPARTS_LEN);
+		strncat(mtdparts, tmp, MTDPARTS_LEN);
+	}
+}
+
 void board_mtdparts_default(const char **mtdids, const char **mtdparts)
 {
+	struct mtd_info *mtd;
 	struct udevice *dev;
-	char *s_nand0 = NULL, *s_nor0 = NULL;
-	static char parts[256];
-	static char ids[22];
+	static char parts[3 * MTDPARTS_LEN + 1];
+	static char ids[MTDIDS_LEN + 1];
+	static bool mtd_initialized;
 
-	if (!uclass_get_device(UCLASS_MTD, 0, &dev))
-		s_nand0 = env_get("mtdparts_nand0");
-
-	if (!uclass_get_device(UCLASS_SPI_FLASH, 0, &dev))
-		s_nor0 = env_get("mtdparts_nor0");
-
-	strcpy(ids, "");
-	strcpy(parts, "");
-	if (s_nand0 && s_nor0) {
-		snprintf(ids, sizeof(ids), "nor0=nor0,nand0=nand0");
-		snprintf(parts, sizeof(parts),
-			 "mtdparts=nor0:%s;nand0:%s", s_nor0, s_nand0);
-	} else if (s_nand0) {
-		snprintf(ids, sizeof(ids), "nand0=nand0");
-		snprintf(parts, sizeof(parts), "mtdparts=nand0:%s", s_nand0);
-	} else if (s_nor0) {
-		snprintf(ids, sizeof(ids), "nor0=nor0");
-		snprintf(parts, sizeof(parts), "mtdparts=nor0:%s", s_nor0);
+	if (mtd_initialized) {
+		*mtdids = ids;
+		*mtdparts = parts;
+		return;
 	}
+
+	memset(parts, 0, sizeof(parts));
+	memset(ids, 0, sizeof(ids));
+
+	/* probe all MTD devices */
+	for (uclass_first_device(UCLASS_MTD, &dev);
+	     dev;
+	     uclass_next_device(&dev)) {
+		pr_debug("mtd device = %s\n", dev->name);
+	}
+
+	mtd = get_mtd_device_nm("nand0");
+	if (!IS_ERR_OR_NULL(mtd)) {
+		board_get_mtdparts("nand0", ids, parts);
+		put_mtd_device(mtd);
+	}
+
+	mtd = get_mtd_device_nm("spi-nand0");
+	if (!IS_ERR_OR_NULL(mtd)) {
+		board_get_mtdparts("spi-nand0", ids, parts);
+		put_mtd_device(mtd);
+	}
+
+	if (!uclass_get_device(UCLASS_SPI_FLASH, 0, &dev)) {
+		board_get_mtdparts("nor0", ids, parts);
+	}
+
+	mtd_initialized = true;
 	*mtdids = ids;
 	*mtdparts = parts;
 	debug("%s:mtdids=%s & mtdparts=%s\n", __func__, ids, parts);
@@ -303,9 +473,7 @@ void board_mtdparts_default(const char **mtdids, const char **mtdparts)
 #if defined(CONFIG_OF_BOARD_SETUP)
 int ft_board_setup(void *blob, bd_t *bd)
 {
-	ulong copro_rsc_addr, copro_rsc_size;
 	int off;
-	char *s_copro = NULL;
 #ifdef CONFIG_FDT_FIXUP_PARTITIONS
 	struct node_info nodes[] = {
 		{ "st,stm32f469-qspi",		MTD_DEV_TYPE_NOR,  },
@@ -317,20 +485,11 @@ int ft_board_setup(void *blob, bd_t *bd)
 	/* Update DT if coprocessor started */
 	off = fdt_path_offset(blob, "/m4");
 	if (off > 0) {
-		s_copro = env_get("copro_state");
-		copro_rsc_addr  = env_get_hex("copro_rsc_addr", 0);
-		copro_rsc_size  = env_get_hex("copro_rsc_size", 0);
-
-		if (s_copro) {
+		if (env_get("copro_state")) {
 			fdt_setprop_empty(blob, off, "early-booted");
-			if (copro_rsc_addr)
-				fdt_setprop_u32(blob, off, "rsc-address",
-						copro_rsc_addr);
-			if (copro_rsc_size)
-				fdt_setprop_u32(blob, off, "rsc-size",
-						copro_rsc_size);
 		} else {
 			fdt_delprop(blob, off, "early-booted");
+			writel(0, TAMP_COPRO_RSC_TBL_ADDRESS);
 		}
 	}
 
@@ -338,7 +497,7 @@ int ft_board_setup(void *blob, bd_t *bd)
 }
 #endif
 
-void board_stm32copro_image_process(ulong fw_image, size_t fw_size)
+static void board_stm32copro_image_process(ulong fw_image, size_t fw_size)
 {
 	int ret, id = 0; /* Copro id fixed to 0 as only one coproc on mp1 */
 	unsigned int rsc_size;
@@ -352,18 +511,18 @@ void board_stm32copro_image_process(ulong fw_image, size_t fw_size)
 		}
 
 	ret = rproc_load_rsc_table(id, fw_image, fw_size, &rsc_addr, &rsc_size);
-	if (!ret) {
-		env_set_hex("copro_rsc_addr", rsc_addr);
-		env_set_hex("copro_rsc_size", rsc_size);
-	}
+	if (ret && ret != -ENODATA)
+		return;
 
 	ret = rproc_load(id, fw_image, fw_size);
 	printf("Load Remote Processor %d with data@addr=0x%08lx %u bytes:%s\n",
 	       id, fw_image, fw_size, ret ? " Failed!" : " Success!");
 
 	if (!ret) {
-		rproc_start(id);
-		env_set("copro_state", "booted");
+		ret = rproc_start(id);
+		printf("Start firmware:%s\n", ret ? " Failed!" : " Success!");
+		if (!ret)
+			env_set("copro_state", "booted");
 	}
 }
 
