@@ -85,10 +85,6 @@
 #define CONFIG_SYS_MMC_MAX_DEVICE	3
 #define CONFIG_SUPPORT_EMMC_BOOT
 
-/*****************************************************************************/
-#ifdef CONFIG_DISTRO_DEFAULTS
-/*****************************************************************************/
-
 /* SPI FLASH support */
 #if defined(CONFIG_SPL_BUILD)
 #define CONFIG_SYS_SPI_U_BOOT_OFFS	0x80000
@@ -103,15 +99,15 @@
 
 #if !defined(CONFIG_SPL_BUILD)
 
-/* default order is SDCARD (SDMMC 0) */
-#define BOOT_TARGET_DEVICES(func) \
-	func(MMC, mmc, 0) \
+#define CONFIG_BOOTCOMMAND \
+	"mmc rescan; " \
+	"run mmc_boot; " \
 
-#include <config_distro_bootcmd.h>
-
-#define CONFIG_PREBOOT \
-	"echo \"Boot from ${boot_device}${boot_instance}!\"; " \
-	"env set boot_targets \"mmc${boot_instance}\"; "\
+#define MMC_BOOT_CMD \
+	"mmc_boot=load mmc ${mmc_dev} ${fdt_addr_r} ${dtbfile} || exit; " \
+	"load mmc ${mmc_dev} ${kernel_addr_r} ${kernelfile} || exit; " \
+	"run mmc_args; " \
+	"bootm ${kernel_addr_r} - ${fdt_addr_r};\0"
 
 /*
  * memory layout for 32M uncompressed/compressed kernel,
@@ -119,6 +115,11 @@
  * and the ramdisk at the end.
  */
 #define CONFIG_EXTRA_ENV_SETTINGS \
+	"mmc_dev=0:4\0" \
+	"mmc_root=/dev/mmcblk0p5\0" \
+	"dtbfile=stm32mp157c-bytedevkit.dtb\0" \
+	"kernelfile=uImage\0" \
+	"loadaddr=0xc1000000\0" \
 	"stdin=serial\0" \
 	"stdout=serial\0" \
 	"stderr=serial\0" \
@@ -132,10 +133,12 @@
 	"fdt_high=0xffffffff\0" \
 	"initrd_high=0xffffffff\0" \
 	"bootlimit=0\0" \
-	"altbootcmd=run bootcmd\0" \
-	BOOTENV \
+	"console=ttySTM0,115200\0" \
+	"default_args=rootwait rw vt.global_cursor_default=0 consoleblank=0\0" \
+	"mmc_args=setenv bootargs ${default_args} console=${console} " \
+		"root=${mmc_root} ${bootargs_append}; \0" \
+	MMC_BOOT_CMD
 
 #endif /* ifndef CONFIG_SPL_BUILD */
-#endif /* ifdef CONFIG_DISTRO_DEFAULTS*/
 
 #endif /* __CONFIG_H */
