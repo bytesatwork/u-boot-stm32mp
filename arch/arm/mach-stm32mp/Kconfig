@@ -77,6 +77,13 @@ config TARGET_ST_STM32MP15x
 		Evalulation board (EV1) or Discovery board (DK1 and DK2).
 		The difference between board are managed with devicetree
 
+config TARGET_BYTEDEVKIT
+	bool "bytesatwork byteDEVKIT"
+	select STM32MP15x
+	imply BOOTCOUNT_LIMIT
+	help
+		Enable byteDEVKIT as target.
+
 config TARGET_DH_STM32MP1_PDK2
 	bool "DH STM32MP1 PDK2"
 	select STM32MP15x
