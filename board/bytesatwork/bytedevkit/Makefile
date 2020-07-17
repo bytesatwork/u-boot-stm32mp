@@ -13,3 +13,5 @@ obj-y += stm32mp1.o
 endif
 
 obj-y += board.o
+
+obj-$(CONFIG_SYS_MTDPARTS_RUNTIME) += ../../st/common/stm32mp_mtdparts.o

@@ -3,9 +3,10 @@
  *  Copyright (C) 2019 bytes at work AG - http://www.bytesatwork.ch
  */
 
-#include "stm32mp157c.dtsi"
-#include "stm32mp157cac-pinctrl.dtsi"
-#include "stm32mp157c-m4-srm.dtsi"
+#include "stm32mp157.dtsi"
+#include "stm32mp15-pinctrl.dtsi"
+#include "stm32mp15xxac-pinctrl.dtsi"
+#include "stm32mp157-m4-srm.dtsi"
 #include <dt-bindings/mfd/st,stpmic1.h>
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/rtc/rtc-stm32.h>
@@ -57,19 +58,6 @@
 		gpu_reserved: gpu@dc000000 {
 			reg = <0xdc000000 0x4000000>;
 			no-map;
-		};
-	};
-
-	sram: sram@10050000 {
-		compatible = "mmio-sram";
-		reg = <0x10050000 0x10000>;
-		#address-cells = <1>;
-		#size-cells = <1>;
-		ranges = <0 0x10050000 0x10000>;
-
-		dma_pool: dma_pool@0 {
-			reg = <0x0 0x10000>;
-			pool;
 		};
 	};
 };
@@ -130,6 +118,13 @@
 				 <STM32_PINMUX('E', 3, ANALOG)>, /* SDMMC2_CK */
 				 <STM32_PINMUX('G', 6, ANALOG)>; /* SDMMC2_CMD */
 		};
+	};
+};
+
+&sram {
+	dma_pool: dma_pool@0 {
+		reg = <0x50000 0x10000>;
+		pool;
 	};
 };
 
@@ -371,7 +366,7 @@
 	status = "disabled";
 };
 
-&pwr {
+&pwr_irq {
 	pwr-supply = <&vdd>;
 };
 

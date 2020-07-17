@@ -44,7 +44,7 @@
 };
 
 &pinctrl {
-	uart4_pins_b: uart4-0 {
+	uart4_pins: uart4 {
 		pins1 {
 			pinmux = <STM32_PINMUX('H', 13, AF8)>; /* UART4_TX */
 			bias-disable;
@@ -58,7 +58,7 @@
 		};
 	};
 
-	uart4_idle_pins_b: uart4-idle-0 {
+	uart4_idle_pins: uart4-idle {
 		pins1 {
 			pinmux = <STM32_PINMUX('H', 13, ANALOG)>; /* UART4_TX */
 		};
@@ -69,7 +69,7 @@
 		};
 	};
 
-	uart4_sleep_pins_b: uart4-sleep-0 {
+	uart4_sleep_pins: uart4-sleep {
 		pins {
 			pinmux = <STM32_PINMUX('H', 13, ANALOG)>, /* UART4_TX */
 				 <STM32_PINMUX('H', 14, ANALOG)>; /* UART4_RX */
@@ -79,10 +79,10 @@
 
 &uart4 {
 	pinctrl-names = "default", "sleep", "idle", "no_console_suspend";
-	pinctrl-0 = <&uart4_pins_b>;
-	pinctrl-1 = <&uart4_sleep_pins_b>;
-	pinctrl-2 = <&uart4_idle_pins_b>;
-	pinctrl-3 = <&uart4_pins_b>;
+	pinctrl-0 = <&uart4_pins>;
+	pinctrl-1 = <&uart4_sleep_pins>;
+	pinctrl-2 = <&uart4_idle_pins>;
+	pinctrl-3 = <&uart4_pins>;
 	status = "okay";
 };
 

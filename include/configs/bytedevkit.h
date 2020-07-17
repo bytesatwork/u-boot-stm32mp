@@ -26,11 +26,6 @@
 #endif
 
 /*
- * malloc() pool size
- */
-#define CONFIG_SYS_MALLOC_LEN			SZ_32M
-
-/*
  * Configuration of the external SRAM memory used by U-Boot
  */
 #define CONFIG_SYS_SDRAM_BASE			STM32_DDR_BASE
@@ -47,11 +42,6 @@
  * Needed by "loadb"
  */
 #define CONFIG_SYS_LOAD_ADDR			STM32_DDR_BASE
-
-/*
- * Env parameters
- */
-#define CONFIG_ENV_SIZE				SZ_4K
 
 /* ATAGs */
 #define CONFIG_CMDLINE_TAG
@@ -85,19 +75,7 @@
 #define CONFIG_SYS_MMC_MAX_DEVICE	3
 #define CONFIG_SUPPORT_EMMC_BOOT
 
-/* SPI FLASH support */
-#if defined(CONFIG_SPL_BUILD)
-#define CONFIG_SYS_SPI_U_BOOT_OFFS	0x80000
-#endif
-
 #define CONFIG_SYS_MAX_FLASH_BANKS	1
-
-/* FILE SYSTEM */
-
-#if defined(CONFIG_STM32_QSPI) || defined(CONFIG_NAND_STM32_FMC2)
-/* Dynamic MTD partition support */
-#define CONFIG_SYS_MTDPARTS_RUNTIME
-#endif
 
 #if !defined(CONFIG_SPL_BUILD)
 

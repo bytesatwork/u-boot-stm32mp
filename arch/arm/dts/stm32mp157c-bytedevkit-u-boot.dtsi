@@ -4,7 +4,7 @@
  */
 
 #include <dt-bindings/clock/stm32mp1-clksrc.h>
-#include "stm32mp157-u-boot.dtsi"
+#include "stm32mp15-u-boot.dtsi"
 #include "stm32mp15-ddr3-1x4Gb-1066-binG.dtsi"
 
 / {
@@ -172,7 +172,7 @@
 	};
 };
 
-&uart4_pins_a {
+&uart4_pins {
 	u-boot,dm-pre-reloc;
 	pins1 {
 		u-boot,dm-pre-reloc;
