@@ -9,6 +9,18 @@ config SYS_VENDOR
 config SYS_CONFIG_NAME
 	default "bytedevkit"
 
+choice
+	prompt "byteENGINE STM32MP1 DDR size"
+	default BYTEENGINE_STM32MP1_RAM_512
+
+config BYTEENGINE_STM32MP1_RAM_512
+	bool "512MB"
+
+config BYTEENGINE_STM32MP1_RAM_1024
+	bool "1024MB"
+
+endchoice
+
 source "board/st/common/Kconfig"
 
 endif
