@@ -11,11 +11,19 @@
 #include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/rtc/rtc-stm32.h>
 
+#if defined(CONFIG_BYTEENGINE_STM32MP1_RAM_512)
+#define STM32MP1_RAM_SIZE 0x20000000
+#elif defined(CONFIG_BYTEENGINE_STM32MP1_RAM_1024)
+#define STM32MP1_RAM_SIZE 0x40000000
+#else
+#error No RAM configuration for byteengine defined!
+#endif
+
 / {
 	compatible = "batw,m5", "st,stm32mp157";
 
 	memory@c0000000 {
-		reg = <0xc0000000 0x20000000>;
+		reg = <0xc0000000 STM32MP1_RAM_SIZE>;
 	};
 
 	reserved-memory {

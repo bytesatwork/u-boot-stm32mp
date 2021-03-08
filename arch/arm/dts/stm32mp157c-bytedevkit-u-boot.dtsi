@@ -5,7 +5,14 @@
 
 #include <dt-bindings/clock/stm32mp1-clksrc.h>
 #include "stm32mp15-u-boot.dtsi"
+
+#if defined(CONFIG_BYTEENGINE_STM32MP1_RAM_512)
 #include "stm32mp15-ddr3-1x4Gb-1066-binG.dtsi"
+#elif defined(CONFIG_BYTEENGINE_STM32MP1_RAM_1024)
+#include "stm32mp15-ddr3-1x8Gb-1066-binG.dtsi"
+#else
+#error No RAM configuration for byteengine defined!
+#endif
 
 / {
 	aliases {
