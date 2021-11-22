@@ -96,9 +96,9 @@
  */
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"mmc_dev=0:4\0" \
-	"mmc_root=/dev/mmcblk0p5\0" \
-	"dtbfile=stm32mp157c-bytedevkit.dtb\0" \
-	"kernelfile=uImage\0" \
+	"mmc_root=/dev/mmcblk0p4\0" \
+	"dtbfile=/boot/stm32mp157c-bytedevkit.dtb\0" \
+	"kernelfile=/boot/uImage\0" \
 	"loadaddr=0xc1000000\0" \
 	"stdin=serial\0" \
 	"stdout=serial\0" \
