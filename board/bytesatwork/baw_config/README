@@ -1,0 +1,68 @@
+
+Configuration options:
+
+CONFIG_CMD_M2CONFIG
+If defined, add the u-boot command m2config to read and write the configuration.
+
+CONFIG_M2CONFIG_EEPROM
+If defined, add method to read (SPL) and write (SPL and u-boot) the
+configuration from the eeprom.
+
+CONFIG_M2CONFIG_BUILTIN
+If defined, add built-in configuration values. Define the following names:
+  M2CONFIG_BUILTIN_PCB
+  M2CONFIG_BUILTIN_RAM
+  M2CONFIG_BUILTIN_FLASH
+
+If both CONFIG_M2CONFIG_EEPROM and CONFIG_M2CONFIG_BUILTIN are defined, the
+order is defined in m2config_get.
+
+At least one of CONFIG_M2CONFIG_EEPROM or CONFIG_M2CONFIG_BUILTIN has to be
+defined.
+
+
+EEPROM format
+
+Byte order is the native byte order of the CPU. The format is:
+
+Bytes  Usage
+  2    Magic
+  2    length
+  4    PCB
+  4    RAM
+  4    Flash
+  4    CRC
+
+Magic is 0x6268. CRC is the native u-boot crc32.
+
+
+Extended data EEPROM format
+
+Byte order is the native byte order of the CPU. The format is:
+
+Bytes  Usage
+  2    Magic ext.
+  2    length
+  4    CRC
+  4    Article number
+  4    Lot
+  1    Lot sequence number
+ 12    Production date
+  6    Flash date
+  6    Flash user
+
+Magic is 0x6235. CRC is the native u-boot crc32.
+
+
+Tracking data EEPROM format
+
+Byte order is the native byte order of the CPU. The format is:
+
+Bytes  Usage
+  2    Magic (tracking data)
+  2    length
+  4    CRC
+ 18    MAC address
+ 16    UID
+
+Magic is 0x6e4a. CRC is the native u-boot crc32.
