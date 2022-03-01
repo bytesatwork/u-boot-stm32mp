@@ -3,9 +3,9 @@
  * Copyright (C) 2015 bytes at work AG
  */
 
-#include "m2config.h"
+#include "baw_config.h"
 
-const struct m2config_name_pair m2config_pcb_name[] = {
+const struct baw_config_name_pair baw_config_pcb_name[] = {
 	{ M2_PCB_REV_00, "Rev.00" },
 	{ M2_PCB_REV_01, "Rev.01" },
 	{ M2_PCB_REV_02, "Rev.02" },
@@ -14,7 +14,7 @@ const struct m2config_name_pair m2config_pcb_name[] = {
 	{ -1, NULL },
 };
 
-const struct m2config_name_pair m2config_ram_name[] = {
+const struct baw_config_name_pair baw_config_ram_name[] = {
 	{ M2_RAM_MT47H128M16RT25E, "MT47H128M16RT25E 256 MB DDR2 @ 266MHz" },
 	{ M2_RAM_K4B2G1646EBIH9,   "K4B2G1646EBIH9 legacy DDR3 @ 303MHz" },
 	{ M2_RAM_K4B2G1646QBCK0,   "K4B2G1646QBCK0 256 MB DDR3 @ 400Mhz" },
@@ -23,7 +23,7 @@ const struct m2config_name_pair m2config_ram_name[] = {
 	{ -1, NULL },
 };
 
-const struct m2config_name_pair m2config_flash_name[] = {
+const struct baw_config_name_pair baw_config_flash_name[] = {
 	{ M2_NAND_2GBIT, "Nand 2 GBit" },
 	{ M2_NAND_4GBIT, "Nand 4 GBit" },
 	{ M2_EMMC_4GB, "EMMC 4 GB" },
@@ -33,9 +33,9 @@ const struct m2config_name_pair m2config_flash_name[] = {
 	{ -1, NULL },
 };
 
-const char *m2config_get_name(u32 config, const struct m2config_name_pair *map)
+const char *baw_config_get_name(u32 config, const struct baw_config_name_pair *map)
 {
-	const struct m2config_name_pair *itr;
+	const struct baw_config_name_pair *itr;
 
 	for (itr = map; itr->name; itr++)
 		if (itr->config == config)

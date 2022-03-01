@@ -1,5 +1,4 @@
 BYTESATWORK BAWCONFIG
 M:	Rico Ganahl <rico.ganahl@bytesatwork.ch>
 S:	Maintained
-F:	board/bytesatwork/baw_config/*m2config*
-F:	board/bytesatwork/baw_config/README
+F:	board/bytesatwork/baw_config/*

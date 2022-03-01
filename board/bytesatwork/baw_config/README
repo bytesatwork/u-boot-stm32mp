@@ -1,23 +1,24 @@
 
 Configuration options:
 
-CONFIG_CMD_M2CONFIG
-If defined, add the u-boot command m2config to read and write the configuration.
+CONFIG_CMD_BAW_CONFIG
+If defined, add the u-boot command bawconfig to read and write the
+configuration.
 
-CONFIG_M2CONFIG_EEPROM
+CONFIG_BAW_CONFIG_EEPROM
 If defined, add method to read (SPL) and write (SPL and u-boot) the
 configuration from the eeprom.
 
-CONFIG_M2CONFIG_BUILTIN
+CONFIG_BAW_CONFIG_BUILTIN
 If defined, add built-in configuration values. Define the following names:
-  M2CONFIG_BUILTIN_PCB
-  M2CONFIG_BUILTIN_RAM
-  M2CONFIG_BUILTIN_FLASH
+  BAW_CONFIG_BUILTIN_PCB
+  BAW_CONFIG_BUILTIN_RAM
+  BAW_CONFIG_BUILTIN_FLASH
 
-If both CONFIG_M2CONFIG_EEPROM and CONFIG_M2CONFIG_BUILTIN are defined, the
-order is defined in m2config_get.
+If both CONFIG_BAW_CONFIG_EEPROM and CONFIG_BAW_CONFIG_BUILTIN are defined, the
+order is defined in baw_config_get.
 
-At least one of CONFIG_M2CONFIG_EEPROM or CONFIG_M2CONFIG_BUILTIN has to be
+At least one of CONFIG_BAW_CONFIG_EEPROM or CONFIG_BAW_CONFIG_BUILTIN has to be
 defined.
 
 

@@ -5,18 +5,18 @@
 
 #include <asm/arch/ddr_defs.h>
 #include <i2c.h>
-#include "m2config_get.h"
+#include "baw_config_get.h"
 
-#include "m2config_builtin.h"
-#include "m2config_eeprom.h"
+#include "baw_config_builtin.h"
+#include "baw_config_eeprom.h"
 
 #define PMIC_ADDRESS 0x2D
 
-void m2config_get(struct m2config *config)
+void baw_config_get(struct baw_config *config)
 {
 	u8 __attribute__((unused)) reg = 0;
 
-	if (m2config_eeprom_read(config) == 0)
+	if (baw_config_eeprom_read(config) == 0)
 		return;
 
 #ifdef CONFIG_SPL_BUILD

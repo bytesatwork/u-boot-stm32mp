@@ -3,9 +3,8 @@
  * Copyright (C) 2015 bytes at work AG
  */
 
-#include "m2config_eeprom.h"
-
-#include "m2config.h"
+#include "baw_config_eeprom.h"
+#include "baw_config.h"
 
 #include <common.h>
 #include <dm/uclass.h>
@@ -20,7 +19,7 @@
 #define EEPROM_TRACK_OFFSET	0x3d
 #define MAGIC_TRACK		0x6e4a
 
-struct udevice *m2config_dev, *busp;
+struct udevice *baw_config_dev, *busp;
 
 struct eeprom_header {
 	u16 magic;
@@ -28,56 +27,56 @@ struct eeprom_header {
 } __packed;
 
 struct eeprom_content {
-	u32	pcb;
-	u32	ram;
-	u32	flash;
+	u32 pcb;
+	u32 ram;
+	u32 flash;
 } __packed;
 
 struct eeprom_content_ext {
-	u32	artno;
-	u32	lot;
-	u8		lotseq;
-	char		proddate[12];
-	char		flashdate[6];
-	char		flashuser[6];
+	u32 artno;
+	u32 lot;
+	u8 lotseq;
+	char proddate[12];
+	char flashdate[6];
+	char flashuser[6];
 } __packed;
 
 struct eeprom_content_track {
-	char		macaddr[18];
-	char		uid[16];	/* enable use of characters */
+	char macaddr[18];
+	char uid[16];	/* enable use of characters */
 } __packed;
 
 struct eeprom_data {
-	struct eeprom_header	header;
-	struct eeprom_content	content;
-	u32			crc;
+	struct eeprom_header header;
+	struct eeprom_content content;
+	u32 crc;
 } __packed;
 
 struct eeprom_data_ext {
-	struct eeprom_header		header;
-	u32				crc;
-	struct eeprom_content_ext	content;
+	struct eeprom_header header;
+	u32 crc;
+	struct eeprom_content_ext content;
 } __packed;
 
 struct eeprom_data_track {
-	struct eeprom_header		header;
-	u32				crc;
-	struct eeprom_content_track	content;
+	struct eeprom_header header;
+	u32 crc;
+	struct eeprom_content_track content;
 } __packed;
 
 struct eeprom_write_frame {
-	struct eeprom_data		content;
-	struct eeprom_data_ext		content_ext;
-	struct eeprom_data_track	content_track;
+	struct eeprom_data content;
+	struct eeprom_data_ext content_ext;
+	struct eeprom_data_track content_track;
 } __packed;
 
 struct eeprom_read_frame {
-	struct eeprom_data		content;
-	struct eeprom_data_ext		content_ext;
-	struct eeprom_data_track	content_track;
+	struct eeprom_data content;
+	struct eeprom_data_ext content_ext;
+	struct eeprom_data_track content_track;
 } __packed;
 
-int m2config_eeprom_init(void)
+int baw_config_eeprom_init(void)
 {
 #ifdef CONFIG_DM_I2C
 	int ret;
@@ -86,11 +85,11 @@ int m2config_eeprom_init(void)
 	if (ret)
 		return ret;
 
-	ret = dm_i2c_probe(busp, EEPROM_ADDRESS, 0, &m2config_dev);
+	ret = dm_i2c_probe(busp, EEPROM_ADDRESS, 0, &baw_config_dev);
 	if (ret)
 		return ret;
 
-	ret = i2c_set_chip_offset_len(m2config_dev, 2);
+	ret = i2c_set_chip_offset_len(baw_config_dev, 2);
 	if (ret)
 		return ret;
 
@@ -111,7 +110,7 @@ static int i2c_write_rdy(void)
 #ifndef CONFIG_DM_I2C
 		ret = i2c_write(EEPROM_ADDRESS, 0, 2, &dummy, 0);
 #else
-		ret = dm_i2c_write(m2config_dev, 0, &dummy, 0);
+		ret = dm_i2c_write(baw_config_dev, 0, &dummy, 0);
 #endif
 		if (ret != 0)
 			udelay(500);
@@ -141,7 +140,7 @@ int i2c_long_write(struct eeprom_write_frame frame, int len)
 		ret = i2c_write(EEPROM_ADDRESS, off, 2, (u8 *)(&frame) + off,
 				wlen);
 #else
-		ret = dm_i2c_write(m2config_dev, off, (u8 *)(&frame) + off,
+		ret = dm_i2c_write(baw_config_dev, off, (u8 *)(&frame) + off,
 				   wlen);
 #endif
 
@@ -157,7 +156,7 @@ int i2c_long_write(struct eeprom_write_frame frame, int len)
 	return ret;
 }
 
-int m2config_eeprom_read(struct m2config *config)
+int baw_config_eeprom_read(struct baw_config *config)
 {
 	struct eeprom_read_frame frame;
 
@@ -165,7 +164,7 @@ int m2config_eeprom_read(struct m2config *config)
 	if (i2c_read(EEPROM_ADDRESS, 0, 2, (u8 *)&frame, sizeof(frame)) != 0)
 		return -3;
 #else
-	if (dm_i2c_read(m2config_dev, 0, (u8 *)&frame, sizeof(frame)))
+	if (dm_i2c_read(baw_config_dev, 0, (u8 *)&frame, sizeof(frame)))
 		return -12;
 #endif
 
@@ -177,7 +176,7 @@ int m2config_eeprom_read(struct m2config *config)
 
 	/* Cast crc32 value to u8 because of legacy code */
 	if (frame.content.crc != (u8)crc32(0, (u8 *)&frame.content.content,
-			sizeof(frame.content.content)))
+					   sizeof(frame.content.content)))
 		return -6;
 
 	config->pcb    = frame.content.content.pcb;
@@ -196,7 +195,7 @@ int m2config_eeprom_read(struct m2config *config)
 	}
 
 	if (frame.content_ext.crc != crc32(0, (u8 *)&frame.content_ext.content,
-			sizeof(frame.content_ext.content))) {
+					   sizeof(frame.content_ext.content))) {
 		printf("ext crc wrong\n");
 		return 0;
 	}
@@ -227,7 +226,7 @@ int m2config_eeprom_read(struct m2config *config)
 	}
 
 	if (frame.content_track.crc != crc32(0, (u8 *)&frame.content_track.content,
-			sizeof(frame.content_track.content))) {
+					     sizeof(frame.content_track.content))) {
 		printf("track crc wrong\n");
 		return 0;
 	}
@@ -244,7 +243,7 @@ int m2config_eeprom_read(struct m2config *config)
 
 #if defined(CONFIG_SKIP_LOWLEVEL_INIT)
 
-int m2config_eeprom_write(struct m2config *config)
+int baw_config_eeprom_write(struct baw_config *config)
 {
 	struct eeprom_write_frame   frame;
 
@@ -255,7 +254,7 @@ int m2config_eeprom_write(struct m2config *config)
 	frame.content.content.flash = config->flash;
 	/* Cast crc32 value to u8 because of legacy code */
 	frame.content.crc = (u8)crc32(0, (const u8 *)&frame.content.content,
-			sizeof(frame.content.content));
+				      sizeof(frame.content.content));
 
 	frame.content_ext.header.magic = MAGIC_EXT;
 	frame.content_ext.header.length = sizeof(frame.content_ext.content);
@@ -269,7 +268,7 @@ int m2config_eeprom_write(struct m2config *config)
 	strlcpy(frame.content_ext.content.flashuser, config->flashuser,
 		sizeof(frame.content_ext.content.flashuser));
 	frame.content_ext.crc = crc32(0, (u8 *)&frame.content_ext.content,
-		sizeof(frame.content_ext.content));
+				      sizeof(frame.content_ext.content));
 
 	frame.content_track.header.magic = MAGIC_TRACK;
 	frame.content_track.header.length = sizeof(frame.content_track.content);
@@ -278,7 +277,7 @@ int m2config_eeprom_write(struct m2config *config)
 	strlcpy(frame.content_track.content.uid, config->uid,
 		sizeof(frame.content_track.content.uid));
 	frame.content_track.crc = crc32(0, (u8 *)&frame.content_track.content,
-		sizeof(frame.content_track.content));
+					sizeof(frame.content_track.content));
 
 	if (i2c_long_write(frame, sizeof(frame)) != 0)
 		return -7;
@@ -286,7 +285,7 @@ int m2config_eeprom_write(struct m2config *config)
 	return 0;
 }
 
-int m2config_eeprom_erase(void)
+int baw_config_eeprom_erase(void)
 {
 	struct eeprom_write_frame   frame;
 
