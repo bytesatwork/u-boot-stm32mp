@@ -9,6 +9,7 @@
 #include "baw_config_builtin.h"
 #include "baw_config_eeprom.h"
 
+#if defined(CONFIG_BAW_CONFIG_BUILTIN) || defined(CONFIG_BAW_CONFIG_EEPROM)
 static void print_config(const struct baw_config *config)
 {
 	printf("PCB:   %u (%s)\n", config->pcb,
@@ -33,6 +34,7 @@ static void print_config(const struct baw_config *config)
 		printf("UID:             %s\n", config->uid);
 	}
 }
+#endif
 
 #if defined(CONFIG_BAW_CONFIG_BUILTIN)
 static enum command_ret_t cmd_builtin(int argc, char * const argv[])
@@ -144,14 +146,12 @@ struct baw_config_cmd_struct {
 static const struct baw_config_cmd_struct baw_config_cmd[] = {
 #if defined(CONFIG_BAW_CONFIG_BUILTIN)
 	{ "builtin", cmd_builtin },
+	{ "builtin2eeprom", cmd_builtin2eeprom },
 #endif
 #if defined(CONFIG_BAW_CONFIG_EEPROM)
 	{ "read", cmd_read },
 	{ "erase", cmd_erase },
 	{ "write", cmd_write },
-#if defined(CONFIG_BAW_CONFIG_BUILTIN)
-	{ "builtin2eeprom", cmd_builtin2eeprom },
-#endif
 #endif
 	{ NULL, NULL }
 };

@@ -19,7 +19,8 @@ static inline int baw_config_eeprom_read(struct baw_config *config)
 }
 #endif
 
-#if defined(CONFIG_BAW_CONFIG_EEPROM) && defined(CONFIG_SKIP_LOWLEVEL_INIT)
+#if defined(CONFIG_BAW_CONFIG_EEPROM) && \
+	(defined(CONFIG_SKIP_LOWLEVEL_INIT) || !defined(CONFIG_TARGET_BYTEENGINE_AM335X))
 int baw_config_eeprom_write(struct baw_config *config);
 int baw_config_eeprom_erase(void);
 #else

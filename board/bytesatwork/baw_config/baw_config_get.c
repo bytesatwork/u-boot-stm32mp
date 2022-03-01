@@ -3,8 +3,9 @@
  * Copyright (C) 2015 bytes at work AG
  */
 
-#include <asm/arch/ddr_defs.h>
+#include <linux/types.h>
 #include <i2c.h>
+#include <stdio.h>
 #include "baw_config_get.h"
 
 #include "baw_config_builtin.h"
@@ -16,10 +17,15 @@ void baw_config_get(struct baw_config *config)
 {
 	u8 __attribute__((unused)) reg = 0;
 
-	if (baw_config_eeprom_read(config) == 0)
-		return;
-
+	if (baw_config_eeprom_read(config) == 0) {
 #ifdef CONFIG_SPL_BUILD
+		printf("Use EEPROM RAM config: %u (%s)\n", config->ram,
+		       baw_config_get_ram_name(config->ram));
+#endif
+		return;
+	}
+
+#if defined(CONFIG_SPL_BUILD) && defined(CONFIG_TARGET_BYTEENGINE_AM335X)
 	if (i2c_read(PMIC_ADDRESS, 0x20, 1, &reg, 1) != 0) {
 		printf("Error: PMIC read failed\n");
 		goto default_config;
@@ -53,6 +59,8 @@ default_config:
 			config->ram = M2_RAM_K4B2G1646EBIH9;	/* set default to legacy DDR3 */
 		else if (IS_ENABLED(CONFIG_TARGET_BYTEDEVKIT))
 			config->ram = M2_RAM_K4B4G1646DBIK0;
+		else if (IS_ENABLED(CONFIG_TARGET_IMX8MM_BYTEDEVKIT))
+			config->ram = M6_RAM_MT53E128M32D2DS_053;
 	}
 
 	if (IS_ENABLED(CONFIG_SPL_BUILD)) {
