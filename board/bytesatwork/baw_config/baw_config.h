@@ -15,6 +15,10 @@ typedef enum {
 	M2_PCB_REV_02 = 2,
 	M2_PCB_REV_03 = 3,
 	M2_PCB_REV_04 = 4,
+	M5_PCB_REV_1_0 = 5,
+	M5_PCB_REV_1_2 = 6,
+	M6_PCB_REV_1_0 = 7,
+	M6_PCB_REV_1_1 = 8,
 } baw_config_pcb_t;
 
 typedef enum {
@@ -23,15 +27,21 @@ typedef enum {
 	M2_RAM_K4B2G1646QBCK0   = 3,
 	M2_RAM_K4B4G1646DBIK0   = 4,
 	M2_RAM_MT41K512M16HA107 = 5,
+	M6_RAM_MT53E128M32D2DS_053 = 6,
+	M6_RAM_MT53E256M32D2DS_053 = 7,
+	M6_RAM_MT53E384M32D2DS_053 = 8,
+	M6_RAM_MT53D512M32D2DS_053 = 9,
+	M6_RAM_MT53E768M32D4DT_053 = 10,
+	M6_RAM_MT53D1024M32D4DT_053 = 11,
 } baw_config_ram_t;
 
 typedef enum {
 	M2_NAND_2GBIT  = 0,
 	M2_NAND_4GBIT  = 1,
-	M2_EMMC_4GB  = 2,
-	M2_EMMC_8GB  = 3,
-	M2_EMMC_16GB = 4,
-	M2_EMMC_32GB = 5,
+	EMMC_4GB  = 2,
+	EMMC_8GB  = 3,
+	EMMC_16GB = 4,
+	EMMC_32GB = 5,
 } baw_config_flash_t;
 
 struct baw_config {
