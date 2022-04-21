@@ -75,6 +75,23 @@
 };
 
 &pinctrl {
+	i2c2_pins: i2c2-0 {
+		pins {
+			pinmux = <STM32_PINMUX('H', 4, AF4)>, /* I2C2_SCL */
+				 <STM32_PINMUX('H', 5, AF4)>; /* IC2C_SDA */
+			bias-pull-up;
+			drive-open-drain;
+			slew-rate = <0>;
+		};
+	};
+
+	i2c2_pins_sleep: i2c2-1 {
+		pins {
+			pinmux = <STM32_PINMUX('H', 4, ANALOG)>, /* I2C2_SCL */
+				 <STM32_PINMUX('H', 5, ANALOG)>; /* I2C2_SDA */
+		};
+	};
+
 	sdmmc2_pins: sdmmc2-b4-0 {
 		pins1 {
 			pinmux = <STM32_PINMUX('B', 14, AF9)>, /* SDMMC2_D0 */
@@ -156,6 +173,18 @@
 			pinmux = <STM32_PINMUX('Z', 4, ANALOG)>, /* I2C4_SCL */
 				 <STM32_PINMUX('Z', 5, ANALOG)>; /* I2C4_SDA */
 		};
+	};
+};
+
+/* HWID EEPROM Configuration */
+&i2c2 {
+	pinctrl-names = "default", "sleep";
+	pinctrl-0 = <&i2c2_pins>;
+	pinctrl-1 = <&i2c2_pins_sleep>;
+	status = "okay";
+
+	hwid: eeprom@57 {
+		reg = <0x57>;
 	};
 };
 

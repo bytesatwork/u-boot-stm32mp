@@ -16,6 +16,7 @@
 
 / {
 	aliases {
+		i2c1 = &i2c2;
 		i2c3 = &i2c4;
 		mmc0 = &sdmmc1;
 		spi0 = &qspi;
