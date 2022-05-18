@@ -21,6 +21,18 @@ config BYTEENGINE_STM32MP1_RAM_1024
 
 endchoice
 
+config CMD_HWID
+       bool "read from and program HWID EEPROM and set env vars"
+       default y
+       help
+	  This option enables the U-Boot CLI command `hwid` which enables
+	  reading out content from the designated HWID (HardWare ID) EEPROM
+	  and programming that ROM.  With that EEPROM byteENGINEs are able to
+	  destinguish on which type of board they run and can dynamically
+	  pass the right Device-Trees to the Kernel.
+
+
+
 source "board/st/common/Kconfig"
 
 endif
