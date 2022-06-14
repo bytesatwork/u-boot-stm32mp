@@ -80,6 +80,7 @@
 #if !defined(CONFIG_SPL_BUILD)
 
 #define CONFIG_BOOTCOMMAND \
+	"run select_dtb; " \
 	"mmc rescan; " \
 	"run mmc_boot; " \
 
@@ -97,7 +98,6 @@
 #define CONFIG_EXTRA_ENV_SETTINGS \
 	"mmc_dev=0:4\0" \
 	"mmc_root=/dev/mmcblk0p4\0" \
-	"dtbfile=/boot/stm32mp157c-bytedevkit.dtb\0" \
 	"kernelfile=/boot/uImage\0" \
 	"loadaddr=0xc1000000\0" \
 	"stdin=serial\0" \
@@ -122,6 +122,15 @@
 	"default_args=rootwait rw vt.global_cursor_default=0 consoleblank=0\0" \
 	"mmc_args=setenv bootargs ${default_args} console=${console} " \
 		"root=${mmc_root} ${bootargs_append}; \0" \
+	"select_dtb=if hwid check; " \
+		"then " \
+			"setenv dtbfile \"" \
+			"/boot/stm32mp157c-bytedevkit-" \
+			"v${board_major}-${board_minor}.dtb\"; " \
+		"else " \
+			"setenv dtbfile " \
+			"\"/boot/stm32mp157c-bytedevkit-v1-1.dtb\";" \
+		"fi;\0" \
 	"update_spiflash=echo Updating SPI Flash ...; " \
 		"sf probe 0; " \
 		"sf erase 0 +${spl_uboot_size}; " \
