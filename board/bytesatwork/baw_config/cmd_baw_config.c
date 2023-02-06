@@ -146,9 +146,11 @@ struct baw_config_cmd_struct {
 static const struct baw_config_cmd_struct baw_config_cmd[] = {
 #if defined(CONFIG_BAW_CONFIG_BUILTIN)
 	{ "builtin", cmd_builtin },
-	{ "builtin2eeprom", cmd_builtin2eeprom },
 #endif
 #if defined(CONFIG_BAW_CONFIG_EEPROM)
+#if defined(CONFIG_BAW_CONFIG_BUILTIN)
+	{ "builtin2eeprom", cmd_builtin2eeprom },
+#endif
 	{ "read", cmd_read },
 	{ "erase", cmd_erase },
 	{ "write", cmd_write },
