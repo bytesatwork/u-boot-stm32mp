@@ -33,6 +33,10 @@ typedef enum {
 	M6_RAM_MT53D512M32D2DS_053 = 9,
 	M6_RAM_MT53E768M32D4DT_053 = 10,
 	M6_RAM_MT53D1024M32D4DT_053 = 11,
+	/* According to the imx8mm datasheet only Quad-A53 supports more than
+	 * 3 GB RAM. Therefore define dedicated enum to use 4 GB as 3 GB RAM.
+	 */
+	M6_RAM_MT53D1024M32D4DT_053_3GB = 12,
 } baw_config_ram_t;
 
 typedef enum {
