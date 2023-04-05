@@ -15,6 +15,8 @@ const struct baw_config_name_pair baw_config_pcb_name[] = {
 	{ M5_PCB_REV_1_2, "M5 Rev 1.2" },
 	{ M6_PCB_REV_1_0, "M6 Rev 1.0" },
 	{ M6_PCB_REV_1_1, "M6 Rev 1.1" },
+	{ M8_PCB_REV_0_1, "M8 Rev 0.1" },
+	{ M8_PCB_REV_1_0, "M8 Rev 1.0" },
 	{ -1, NULL },
 };
 
@@ -32,6 +34,10 @@ const struct baw_config_name_pair baw_config_ram_name[] = {
 	{ M6_RAM_MT53D1024M32D4DT_053, "MT53D1024M32D4DT-053 4 GB LPDDR4 @ 1500 MHz" },
 	{ M6_RAM_MT53D1024M32D4DT_053_3GB,
 		"MT53D1024M32D4DT-053 4 GB using 3 GB @ 1500 MHz" },
+	{ M8_RAM_MT53E256M16D1DS_046, "MT53E256M16D1DS-046 512 MB LPDDR4 @ 1600 MHz"},
+	{ M8_RAM_MT53D512M16D1DS_046, "MT53D512M16D1DS-046 1 GB LPDDR4 @ 1600 MHz"},
+	{ M8_RAM_MT53E1G16D1FW_046, "MT53E1G16D1FW-046 2 GB LPDDR4 @ 1600 MHz"},
+	{ M8_RAM_MT53E4G16D4NQ_046, "MT53E4G16D4NQ-046 8 GB LPDDR4 @ 1600 MHz"},
 	{ -1, NULL },
 };
 

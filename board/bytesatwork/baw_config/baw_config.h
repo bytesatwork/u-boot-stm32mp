@@ -19,6 +19,8 @@ typedef enum {
 	M5_PCB_REV_1_2 = 6,
 	M6_PCB_REV_1_0 = 7,
 	M6_PCB_REV_1_1 = 8,
+	M8_PCB_REV_0_1 = 9,
+	M8_PCB_REV_1_0 = 10,
 } baw_config_pcb_t;
 
 typedef enum {
@@ -37,6 +39,10 @@ typedef enum {
 	 * 3 GB RAM. Therefore define dedicated enum to use 4 GB as 3 GB RAM.
 	 */
 	M6_RAM_MT53D1024M32D4DT_053_3GB = 12,
+	M8_RAM_MT53E256M16D1DS_046 = 13,
+	M8_RAM_MT53D512M16D1DS_046 = 14,
+	M8_RAM_MT53E1G16D1FW_046 = 15,
+	M8_RAM_MT53E4G16D4NQ_046 = 16,
 } baw_config_ram_t;
 
 typedef enum {
