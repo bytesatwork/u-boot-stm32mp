@@ -33,6 +33,8 @@
 #include <power/regulator.h>
 #include <usb/dwc2_udc.h>
 
+#include "../baw_config/baw_config_eeprom.h"
+
 /* SYSCFG registers */
 #define SYSCFG_BOOTR		0x00
 #define SYSCFG_PMCSETR		0x04
@@ -358,6 +360,11 @@ int board_late_init(void)
 	if (boot_device &&
 	    (!strcmp(boot_device, "serial") || !strcmp(boot_device, "usb")))
 		env_set("bootdelay", "0");
+
+#ifdef CONFIG_BAW_CONFIG_EEPROM
+	if (baw_config_eeprom_init())
+		printf("EEPROM init failed!\n");
+#endif
 
 	return 0;
 }

@@ -11,9 +11,9 @@ obj-y += spl.o
 else
 obj-y += stm32mp1.o
 obj-$(CONFIG_CMD_HWID) += hwid.o
+obj-y += ../baw_config/
 endif
 
 obj-y += board.o
 
 obj-$(CONFIG_SYS_MTDPARTS_RUNTIME) += ../../st/common/stm32mp_mtdparts.o
-

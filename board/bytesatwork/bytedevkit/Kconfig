@@ -31,6 +31,45 @@ config CMD_HWID
 	  destinguish on which type of board they run and can dynamically
 	  pass the right Device-Trees to the Kernel.
 
+menu "bytes at work config tool"
+
+config CMD_BAW_CONFIG
+	bool "bawconfig command"
+	default y
+	help
+	  Enable bawconfig command functionality.
+	  Command is used to read and write production data.
+	  In general the production data is stored in the EEPROM on the module.
+
+config BAW_CONFIG_EEPROM
+	bool "bawconfig eeprom support"
+	default y
+	help
+	  Enable bawconfig EEPROM read/write functionality.
+	  Allows to read and write the production data to the EEPROM on the
+	  module.
+
+config BAW_CONFIG_EEPROM_BUS
+	int "bawconfig I2C bus number"
+	default 3
+	help
+	  I2C bus number of production data EEPROM.
+
+config BAW_CONFIG_EEPROM_ADDRESS
+	hex "bawconfig I2C address"
+	default 0x50
+	help
+	  I2C address of production data EEPROM.
+
+config BAW_CONFIG_BUILTIN
+	bool "bawconfig builtin support"
+	default n
+	help
+	  Enable bawconfig builtin configuration functionality.
+	  Uses the define values from the board header.
+	  See for example include/configs/bytedevkit.h.
+
+endmenu
 
 
 source "board/st/common/Kconfig"
