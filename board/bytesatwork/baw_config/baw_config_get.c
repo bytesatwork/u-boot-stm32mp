@@ -40,6 +40,23 @@ void baw_config_get(struct baw_config *config)
 default_config:
 #endif
 
-	config->ram = M2_RAM_K4B2G1646EBIH9;	/* set default to legacy DDR3 */
-	printf("Error: no RAM configuration found, trying fallback configuration %u\n", config->ram);
+	if (IS_ENABLED(CONFIG_BAW_CONFIG_BUILTIN)) {
+		config->ram = BAW_CONFIG_BUILTIN_RAM;
+		if (IS_ENABLED(CONFIG_SPL_BUILD)) {
+			printf("Use built in RAM config: %u (%s)\n", config->ram,
+			       baw_config_get_ram_name(config->ram));
+
+			return;
+		}
+	} else {
+		if (IS_ENABLED(CONFIG_TARGET_BYTEENGINE_AM335X))
+			config->ram = M2_RAM_K4B2G1646EBIH9;	/* set default to legacy DDR3 */
+		else if (IS_ENABLED(CONFIG_TARGET_BYTEDEVKIT))
+			config->ram = M2_RAM_K4B4G1646DBIK0;
+	}
+
+	if (IS_ENABLED(CONFIG_SPL_BUILD)) {
+		printf("Error: no RAM configuration found, trying fallback config ");
+		printf("%u (%s)\n", config->ram, baw_config_get_ram_name(config->ram));
+	}
 }
