@@ -37,7 +37,7 @@ static void print_config(const struct baw_config *config)
 #if defined(CONFIG_BAW_CONFIG_BUILTIN)
 static enum command_ret_t cmd_builtin(int argc, char * const argv[])
 {
-	struct baw_config config;
+	struct baw_config config = {0};
 
 	if (argc != 0)
 		return CMD_RET_USAGE;
@@ -56,7 +56,7 @@ static enum command_ret_t cmd_builtin(int argc, char * const argv[])
 #if defined(CONFIG_BAW_CONFIG_EEPROM)
 static enum command_ret_t cmd_read(int argc, char * const argv[])
 {
-	struct baw_config config;
+	struct baw_config config = {0};
 	int ret;
 
 	if (argc != 0)
@@ -73,7 +73,7 @@ static enum command_ret_t cmd_read(int argc, char * const argv[])
 
 static enum command_ret_t cmd_write(int argc, char * const argv[])
 {
-	struct baw_config config;
+	struct baw_config config = {0};
 
 	if (argc != 11)
 		return CMD_RET_USAGE;
@@ -116,7 +116,7 @@ static enum command_ret_t cmd_erase(int argc, char * const argv[])
 #if defined(CONFIG_BAW_CONFIG_BUILTIN)
 static enum command_ret_t cmd_builtin2eeprom(int argc, char * const argv[])
 {
-	struct baw_config config;
+	struct baw_config config = {0};
 
 	if (argc != 0)
 		return CMD_RET_USAGE;
