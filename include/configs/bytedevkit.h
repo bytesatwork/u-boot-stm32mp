@@ -141,6 +141,11 @@
 		"sf write ${loadaddr} ${uboot_offset} ${filesize};\0" \
 	MMC_BOOT_CMD
 
+#ifdef CONFIG_ENV_IS_IN_MMC
+#define CONFIG_SYS_MMC_ENV_DEV		1
+#define CONFIG_SYS_MMC_ENV_PART		0x0
+#endif
+
 #endif /* ifndef CONFIG_SPL_BUILD */
 
 #define BAW_CONFIG_BUILTIN_PCB    M5_PCB_REV_1_2
